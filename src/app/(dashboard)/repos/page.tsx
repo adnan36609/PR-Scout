@@ -428,15 +428,17 @@ function ConnectedRepoCard({
           </Link>
 
           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={"ghost"}
-                size={"icon-sm"}
-                disabled={isDisconnecting}
-                className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="size-4" />
-              </Button>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={isDisconnecting}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                />
+              }
+            >
+              <Trash2 className="size-4" />
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>

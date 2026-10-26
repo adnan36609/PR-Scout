@@ -4,7 +4,7 @@ import { useState } from "react";
 import { linkSocial } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Github, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FaGithub } from "react-icons/fa";
 
