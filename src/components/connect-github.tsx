@@ -20,16 +20,28 @@ export function ConnectGithub({
   className,
 }: ConnectGitHubProps) {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleConnect = async () => {
     setIsConnecting(true);
+    setError("");
+
     try {
-      await linkSocial({
+      const result = await linkSocial({
         provider: "github",
         callbackURL: window.location.href,
+        errorCallbackURL: `${window.location.origin}/error`,
       });
+
+      if (result.error) {
+        setError(
+          result.error.message || "Unable to connect GitHub. Please try again.",
+        );
+        setIsConnecting(false);
+      }
     } catch (error) {
       console.error("Failed to connect GitHub:", error);
+      setError("Unable to connect GitHub. Please try again.");
       setIsConnecting(false);
     }
   };
@@ -44,6 +56,11 @@ export function ConnectGithub({
         <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
           {description}
         </p>
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <Button
           className="mt-6"
           onClick={handleConnect}

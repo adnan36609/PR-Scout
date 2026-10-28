@@ -1,8 +1,6 @@
-import { betterAuth, github } from "better-auth";
+import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { db } from "../db";
-import { tr } from "zod/v4/locales";
-
 export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
@@ -21,6 +19,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       trustedProviders: ["github"],
+      allowDifferentEmails: true,
     },
   },
   session: {
