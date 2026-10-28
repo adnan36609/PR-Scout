@@ -20,7 +20,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  GitBranch,
   Lock,
   Globe,
   RefreshCw,
@@ -28,7 +27,6 @@ import {
   Trash2,
   ArrowRight,
   Star,
-  GitPullRequest,
   Search,
   X,
   CheckCircle,
@@ -106,6 +104,10 @@ export default function ReposPage() {
       repo.description?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  const allFilteredSelected =
+    filteredAvailableRepos.length > 0 &&
+    filteredAvailableRepos.every((repo) => selectedRepos.has(repo.githubId));
+
   const toggleRepo = (githubId: number) => {
     const next = new Set(selectedRepos);
     if (next.has(githubId)) {
@@ -130,7 +132,15 @@ export default function ReposPage() {
   };
 
   const selectAll = () => {
-    setSelectedRepos(new Set(filteredAvailableRepos.map((r) => r.githubId)));
+    setSelectedRepos((prev) => {
+      const next = new Set(prev);
+
+      filteredAvailableRepos.forEach((repo) => {
+        next.add(repo.githubId);
+      });
+
+      return next;
+    });
   };
 
   const clearSelection = () => {
@@ -243,9 +253,13 @@ export default function ReposPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <button
                       onClick={selectAll}
-                      className="text-muted-foreground hover:text-foreground transition-colors"
+                      disabled={
+                        allFilteredSelected ||
+                        filteredAvailableRepos.length === 0
+                      }
+                      className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Select all
+                      {allFilteredSelected ? "All selected" : "Select all"}
                     </button>
                     {selectedRepos.size > 0 && (
                       <>
@@ -341,10 +355,10 @@ export default function ReposPage() {
               <Skeleton key={i} className="h-16 w-full rounded-xl" />
             ))}
           </div>
-        ) : connectedRepos.data?.length === 0 ? (
+        ) : !connectedRepos.data || connectedRepos.data.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
-              <div className="mx-auto h-14 rounded-full bg-muted flex items-center justify-center">
+              <div className="mx-auto size-14 rounded-full bg-muted flex items-center justify-center">
                 <FolderGit2 className="size-7 text-muted-foreground" />
               </div>
               <p className="mt-4 font-medium">
@@ -391,6 +405,8 @@ function ConnectedRepoCard({
   onDisconnect: () => void;
   isDisconnecting: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <Card className="group hover:border-primary/30 transition-all hover:shadow-sm">
       <CardContent className="p-5">
@@ -400,9 +416,7 @@ function ConnectedRepoCard({
               <div
                 className={cn(
                   "size-10 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                  repo.private
-                    ? "bg-emerald-500/10 group-hover:bg-emerald-500/15"
-                    : "bg-emerald-500/10 group-hover:bg-emerald-500/15",
+                  "bg-emerald-500/10 group-hover:bg-emerald-500/15",
                 )}
               >
                 {repo.private ? (
@@ -411,15 +425,25 @@ function ConnectedRepoCard({
                   <Globe className="size-4 text-emerald-600 dark:text-emerald-400" />
                 )}
               </div>
-              <div className="min-w-0">
-                <span className="font-medium block truncate group-hover:text-primary transition-colors">
+
+              <div className="min-w-0 flex-1">
+                <span
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpanded((prev) => !prev);
+                  }}
+                  title={expanded ? "Click to collapse" : "Click to expand"}
+                  className={cn(
+                    "font-medium block cursor-pointer group-hover:text-primary transition-colors",
+                    expanded ? "break-all whitespace-normal" : "truncate",
+                  )}
+                >
                   {repo.fullName}
                 </span>
+
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge
-                    variant={"outline"}
-                    className="text-xs px-1.5 py-0 h-5"
-                  >
+                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
                     {repo.private ? "Private" : "Public"}
                   </Badge>
                 </div>
@@ -440,9 +464,11 @@ function ConnectedRepoCard({
             >
               <Trash2 className="size-4" />
             </AlertDialogTrigger>
+
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Disconnect Repository</AlertDialogTitle>
+
                 <AlertDialogDescription>
                   Are you sure you want to disconnect{" "}
                   <span className="font-medium text-foreground">
@@ -451,8 +477,10 @@ function ConnectedRepoCard({
                   ? This will remove all review history for this repository.
                 </AlertDialogDescription>
               </AlertDialogHeader>
+
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
+
                 <AlertDialogAction
                   onClick={onDisconnect}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -468,10 +496,11 @@ function ConnectedRepoCard({
           <span className="text-xs text-muted-foreground">
             Connected {formatDate(repo.createdAt)}
           </span>
+
           <Link href={`/repos/${repo.id}`}>
             <Button
-              variant={"ghost"}
-              size={"sm"}
+              variant="ghost"
+              size="sm"
               className="h-7 text-xs gap-1.5 -mr-2"
             >
               View PRs
@@ -497,6 +526,8 @@ function RepoSelectItem({
     ? languageColors[repo.language] || "bg-gray-400"
     : null;
 
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <label
       className={cn(
@@ -509,19 +540,34 @@ function RepoSelectItem({
         onCheckedChange={onToggle}
         className="shrink-0"
       />
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium truncate">{repo.fullName}</span>
+          <span className="font-medium">{repo.fullName}</span>
+
           {repo.private && (
             <Lock className="size-3 text-muted-foreground shrink-0" />
           )}
         </div>
+
         {repo.description && (
-          <p className="text-sm text-muted-foreground truncate mt-0.5">
+          <p
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setExpanded((prev) => !prev);
+            }}
+            title={expanded ? "Click to collapse" : "Click to expand"}
+            className={cn(
+              "text-sm text-muted-foreground mt-0.5 cursor-pointer",
+              expanded ? "whitespace-normal wrap-break-word" : "truncate",
+            )}
+          >
             {repo.description}
           </p>
         )}
       </div>
+
       <div className="flex items-center gap-4 shrink-0">
         {repo.stars > 0 && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -529,6 +575,7 @@ function RepoSelectItem({
             <span className="tabular-nums">{repo.stars}</span>
           </span>
         )}
+
         {repo.language && (
           <div className="flex items-center gap-1.5">
             <span className={cn("size-2.5 rounded-full shrink-0", langColor)} />
