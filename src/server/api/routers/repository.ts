@@ -54,28 +54,55 @@ export const repositoryRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const result = await Promise.all(
-        input.repos.map((repo) =>
-          ctx.db.repository.upsert({
-            where: { githubId: repo.githubId },
-            create: {
-              userId: ctx.user.id,
-              githubId: repo.githubId,
-              name: repo.name,
-              fullName: repo.fullName,
-              private: repo.private,
-              htmlUrl: repo.htmlUrl,
-            },
-            update: {
-              name: repo.name,
-              fullName: repo.fullName,
-              private: repo.private,
-              htmlUrl: repo.htmlUrl,
-              updatedAt: new Date(),
-            },
-          }),
-        ),
-      );
+      const userId = ctx.user.id;
+
+      const result = await ctx.db.$transaction(async (tx) => {
+        const githubIds = input.repos.map((repo) => repo.githubId);
+
+        // Find existing records for the submitted GitHub repositories.
+        const existingRepos = await tx.repository.findMany({
+          where: { githubId: { in: githubIds } },
+          select: { githubId: true, userId: true },
+        });
+
+        // Never allow one user to modify another user's repository record.
+        const unauthorizedRepo = existingRepos.find(
+          (repo) => repo.userId !== userId,
+        );
+
+        if (unauthorizedRepo) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message:
+              "One or more repositories are already connected to another account.",
+          });
+        }
+
+        // All existing records belong to this user, so updates are permitted.
+        return Promise.all(
+          input.repos.map((repo) =>
+            tx.repository.upsert({
+              where: { githubId: repo.githubId },
+              create: {
+                userId,
+                githubId: repo.githubId,
+                name: repo.name,
+                fullName: repo.fullName,
+                private: repo.private,
+                htmlUrl: repo.htmlUrl,
+              },
+              update: {
+                name: repo.name,
+                fullName: repo.fullName,
+                private: repo.private,
+                htmlUrl: repo.htmlUrl,
+                updatedAt: new Date(),
+              },
+            }),
+          ),
+        );
+      });
+
       return { connected: result.length };
     }),
 
