@@ -371,6 +371,11 @@ function ReviewStatusBadge({ status }: { status: string }) {
       className:
         "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20",
     },
+    CANCELLED: {
+      icon: XCircle,
+      label: "Review cancelled",
+      className: "bg-muted text-muted-foreground border-border",
+    },
   }[status] ?? {
     icon: Clock,
     label: "Pending",
