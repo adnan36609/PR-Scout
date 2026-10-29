@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { set } from "zod";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -41,7 +40,7 @@ export default function SignUpPage() {
       setError(result.error.message || "An error occurred");
       setLoading(false);
     } else {
-      router.push("/repos");
+      router.push("/dashboard");
     }
   };
 
@@ -51,7 +50,7 @@ export default function SignUpPage() {
 
     await signIn.social({
       provider: "github",
-      callbackURL: "/repos",
+      callbackURL: "/dashboard",
     });
   };
 

@@ -38,7 +38,7 @@ export default function SignInPage() {
       setError(result.error.message || "An error occurred");
       setLoading(false);
     } else {
-      router.push("/repos");
+      router.push("/dashboard");
     }
   };
 
@@ -48,7 +48,7 @@ export default function SignInPage() {
 
     await signIn.social({
       provider: "github",
-      callbackURL: "/repos",
+      callbackURL: "/dashboard",
     });
   };
 
