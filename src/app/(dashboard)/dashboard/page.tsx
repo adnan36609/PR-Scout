@@ -70,6 +70,8 @@ export default function DashboardPage() {
     recentReviews,
   } = overview.data;
 
+  const isFirstTime = repositoryCount === 0 && totalReviews === 0;
+
   const metrics = [
     {
       label: "Connected repositories",
@@ -112,172 +114,191 @@ export default function DashboardPage() {
           <p className="text-sm font-medium text-primary">PR Scout overview</p>
 
           <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Welcome back, {firstName}.
+            {isFirstTime
+              ? `Welcome to PR Scout, ${firstName}.`
+              : `Welcome back, ${firstName}.`}
           </h1>
 
           <p className="mt-2 text-muted-foreground">
-            Here&apos;s what&apos;s happening across your repositories and code
-            reviews.
+            {isFirstTime
+              ? "Connect your GitHub repository and run your first AI code review."
+              : "Here's what's happening across your repositories and code reviews."}
           </p>
         </div>
 
-        <Link
-          href="/repos"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          <FolderGit2 className="size-4" />
-          Manage repositories
-        </Link>
-      </section>
-
-      <section
-        aria-label="Review statistics"
-        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      >
-        {metrics.map((metric) => {
-          const Icon = metric.icon;
-
-          return (
-            <Link
-              key={metric.label}
-              href={metric.href}
-              aria-label={`${metric.label}: ${metric.value}. View details.`}
-              className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              <Card className="h-full border-border/70 transition-all duration-200 group-hover:border-primary/40 group-hover:bg-muted/30 group-hover:shadow-sm">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm text-muted-foreground">
-                        {metric.label}
-                      </p>
-
-                      <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-                        {metric.value}
-                      </p>
-                    </div>
-
-                    <div
-                      className={cn(
-                        "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                        metric.iconClass,
-                      )}
-                    >
-                      <Icon className="size-5" />
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {metric.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-          );
-        })}
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight">
-              Recent activity
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Your latest pull-request reviews.
-            </p>
-          </div>
-
+        {!isFirstTime && (
           <Link
-            href="/reviews"
-            className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+            href="/repos"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            View all reviews
-            <ArrowRight className="size-4" />
+            <FolderGit2 className="size-4" />
+            Manage repositories
           </Link>
-        </div>
+        )}
+      </section>
+      {isFirstTime ? (
+        <GettingStartedPanel />
+      ) : (
+        <>
+          <section
+            aria-label="Review statistics"
+            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+          >
+            {metrics.map((metric) => {
+              const Icon = metric.icon;
 
-        <Card className="overflow-hidden border-border/70">
-          {recentReviews.length === 0 ? (
-            <CardContent className="flex flex-col items-center py-14 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted">
-                <GitPullRequest className="size-6 text-muted-foreground" />
+              return (
+                <Link
+                  key={metric.label}
+                  href={metric.href}
+                  aria-label={`${metric.label}: ${metric.value}. View details.`}
+                  className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <Card className="h-full border-border/70 transition-all duration-200 group-hover:border-primary/40 group-hover:bg-muted/30 group-hover:shadow-sm">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm text-muted-foreground">
+                            {metric.label}
+                          </p>
+
+                          <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
+                            {metric.value}
+                          </p>
+                        </div>
+
+                        <div
+                          className={cn(
+                            "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                            metric.iconClass,
+                          )}
+                        >
+                          <Icon className="size-5" />
+                        </div>
+                      </div>
+
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        {metric.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
+          </section>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  Recent activity
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Your latest pull-request reviews.
+                </p>
               </div>
 
-              <h3 className="mt-4 font-medium">No reviews yet</h3>
-
-              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                Connect a repository and start an AI review to see your activity
-                here.
-              </p>
-
               <Link
-                href="/repos"
-                className="mt-5 inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                href="/reviews"
+                className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-primary hover:underline"
               >
-                Connect a repository
+                View all reviews
                 <ArrowRight className="size-4" />
               </Link>
-            </CardContent>
-          ) : (
-            <div className="divide-y divide-border/60">
-              {recentReviews.map((review) => (
-                <Link
-                  key={review.id}
-                  href={`/repos/${review.repository.id}/pr/${review.prNumber}`}
-                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <div
-                      className={cn(
-                        "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg",
-                        getStatusIconBackground(review.status),
-                      )}
-                    >
-                      <GitPullRequest className="size-4" />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{review.prTitle}</p>
-
-                      <p className="mt-1 truncate text-sm text-muted-foreground">
-                        {review.repository.fullName} · #{review.prNumber}
-                      </p>
-
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(review.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-3 pl-12 sm:pl-0">
-                    {review.status === "COMPLETED" &&
-                      review.riskScore !== null && (
-                        <span className="text-sm text-muted-foreground">
-                          Risk{" "}
-                          <span className="font-semibold text-foreground">
-                            {review.riskScore}/100
-                          </span>
-                        </span>
-                      )}
-
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium",
-                        getStatusBadgeClass(review.status),
-                      )}
-                    >
-                      {formatStatus(review.status)}
-                    </span>
-
-                    <ArrowRight className="hidden size-4 text-muted-foreground sm:block" />
-                  </div>
-                </Link>
-              ))}
             </div>
-          )}
-        </Card>
-      </section>
+
+            <Card className="overflow-hidden border-border/70">
+              {recentReviews.length === 0 ? (
+                <CardContent className="flex flex-col items-center py-14 text-center">
+                  <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+                    <GitPullRequest className="size-6 text-muted-foreground" />
+                  </div>
+
+                  <h3 className="mt-4 font-medium">
+                    {repositoryCount > 0
+                      ? "Ready for your first review?"
+                      : "Connect a repository to get started"}
+                  </h3>
+
+                  <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                    {repositoryCount > 0
+                      ? "Your repositories are connected. Open a repository, choose a pull request, and run your first AI code review."
+                      : "Connect a GitHub repository to choose a pull request and start your first AI code review."}
+                  </p>
+
+                  <Link
+                    href="/repos"
+                    className="mt-5 inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    {repositoryCount > 0
+                      ? "Browse repositories"
+                      : "Connect a repository"}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </CardContent>
+              ) : (
+                <div className="divide-y divide-border/60">
+                  {recentReviews.map((review) => (
+                    <Link
+                      key={review.id}
+                      href={`/repos/${review.repository.id}/pr/${review.prNumber}`}
+                      className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div
+                          className={cn(
+                            "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg",
+                            getStatusIconBackground(review.status),
+                          )}
+                        >
+                          <GitPullRequest className="size-4" />
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">
+                            {review.prTitle}
+                          </p>
+
+                          <p className="mt-1 truncate text-sm text-muted-foreground">
+                            {review.repository.fullName} · #{review.prNumber}
+                          </p>
+
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {formatDate(review.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 items-center gap-3 pl-12 sm:pl-0">
+                        {review.status === "COMPLETED" &&
+                          review.riskScore !== null && (
+                            <span className="text-sm text-muted-foreground">
+                              Risk{" "}
+                              <span className="font-semibold text-foreground">
+                                {review.riskScore}/100
+                              </span>
+                            </span>
+                          )}
+
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium",
+                            getStatusBadgeClass(review.status),
+                          )}
+                        >
+                          {formatStatus(review.status)}
+                        </span>
+
+                        <ArrowRight className="hidden size-4 text-muted-foreground sm:block" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </section>
+        </>
+      )}
     </div>
   );
 }
@@ -338,4 +359,86 @@ function formatDate(date: Date): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function GettingStartedPanel() {
+  const steps = [
+    {
+      number: "01",
+      icon: FolderGit2,
+      title: "Connect a repository",
+      description:
+        "Connect your GitHub account and choose a repository you want PR Scout to review.",
+    },
+    {
+      number: "02",
+      icon: GitPullRequest,
+      title: "Choose a pull request",
+      description:
+        "Open your connected repository, select a pull request, and start an AI review.",
+    },
+    {
+      number: "03",
+      icon: CheckCircle2,
+      title: "Review the findings",
+      description:
+        "Explore potential bugs, severity classifications, risk scores, and suggested fixes.",
+    },
+  ];
+
+  return (
+    <Card className="overflow-hidden border-border/70">
+      <CardContent className="p-6 sm:p-8">
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+            GETTING STARTED
+          </span>
+
+          <h2 className="mt-4 text-2xl font-semibold tracking-tight">
+            Your first AI code review starts here.
+          </h2>
+
+          <p className="mt-3 max-w-xl leading-7 text-muted-foreground">
+            Connect a GitHub repository to analyze pull requests, identify
+            potential bugs, and get actionable findings from PR Scout.
+          </p>
+
+          <Link
+            href="/repos"
+            className="mt-6 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <FolderGit2 className="size-4" />
+            Connect a repository
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-4 border-t border-border/60 pt-6 md:grid-cols-3">
+          {steps.map((step) => {
+            const Icon = step.icon;
+
+            return (
+              <div key={step.number} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+                    {step.number}
+                  </span>
+
+                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                    <Icon className="size-4 text-foreground" />
+                  </div>
+                </div>
+
+                <h3 className="font-medium">{step.title}</h3>
+
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {step.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
