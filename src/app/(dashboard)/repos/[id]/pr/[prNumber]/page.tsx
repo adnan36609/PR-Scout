@@ -69,6 +69,13 @@ export default function PullRequestDetailPage({ params }: PageProps) {
     },
   });
 
+  const cancelReview = trpc.review.cancel.useMutation({
+    onSuccess: async () => {
+      await latestReview.refetch();
+      await pr.refetch();
+    },
+  });
+
   const isReviewing =
     latestReview.data?.status === "PENDING" ||
     latestReview.data?.status === "PROCESSING";
@@ -250,11 +257,30 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                       : null
                   }
                 />
-                {!isReviewing && <div className="h-4 w-px bg-border" />}
-                {isReviewing ? null : (
+
+                <div className="h-4 w-px bg-border" />
+
+                {isReviewing ? (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      const reviewId = latestReview.data?.id;
+
+                      if (reviewId) {
+                        cancelReview.mutate({ id: reviewId });
+                      }
+                    }}
+                    disabled={cancelReview.isPending || !latestReview.data?.id}
+                    className="gap-1.5 h-auto py-1 px-2 text-xs"
+                  >
+                    <XCircle className="size-3.5" />
+                    {cancelReview.isPending ? "Stopping..." : "Stop review"}
+                  </Button>
+                ) : (
                   <Button
                     variant="outline"
-                    size={"sm"}
+                    size="sm"
                     onClick={() => {
                       triggerReview.mutate({
                         repositoryId: id,
@@ -264,7 +290,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                     disabled={triggerReview.isPending}
                     className="gap-1.5 h-auto py-1 px-2 text-xs"
                   >
-                    <Wand2 />
+                    <Wand2 className="size-3.5" />
                     {latestReview.data ? "Re-run" : "Review"}
                   </Button>
                 )}

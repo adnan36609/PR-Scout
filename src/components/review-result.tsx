@@ -129,6 +129,28 @@ export function ReviewResult({ review }: ReviewResultProps) {
     );
   }
 
+  if (review.status === "CANCELLED") {
+    return (
+      <Card>
+        <CardContent className="py-12 px-6">
+          <div className="flex items-center gap-4">
+            <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <XCircle className="size-5 text-muted-foreground" />
+            </div>
+
+            <div>
+              <h3 className="font-medium">Review cancelled</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                This review was stopped. You can run it again whenever you&apos;re
+                ready.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (review.status === "FAILED") {
     return (
       <Card className="overflow-hidden border-destructive/20">
@@ -168,6 +190,10 @@ export function ReviewResult({ review }: ReviewResultProps) {
   };
 
   const totalIssues = comments.length;
+
+  const findingsWereOmitted =
+    review.summary?.includes("AI finding was omitted") === true ||
+    review.summary?.includes("AI findings were omitted") === true;
 
   return (
     <div className="space-y-6">
@@ -264,7 +290,8 @@ export function ReviewResult({ review }: ReviewResultProps) {
           </div>
         </div>
       ) : (
-        review.status === "COMPLETED" && <NoIssuesCard />
+        review.status === "COMPLETED" &&
+        !findingsWereOmitted && <NoIssuesCard />
       )}
     </div>
   );
@@ -499,6 +526,14 @@ function RiskScoreSection({ score }: { score: number }) {
           </span>
           <span className="text-xs text-muted-foreground font-medium">
             /100
+          </span>
+          <span
+            className={cn(
+              "ml-2 border-l border-current/20 pl-2 text-xs font-semibold",
+              config.color,
+            )}
+          >
+            {config.label}
           </span>
         </div>
       </div>
