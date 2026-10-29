@@ -1,3 +1,4 @@
+import { dashboardRouter } from "./routers/dashboard";
 import { pullRequestRouter } from "./routers/pull-request";
 import { repositoryRouter } from "./routers/repository";
 import { reviewRouter } from "./routers/review";
@@ -7,6 +8,7 @@ export const appRouter = createTRPCRouter({
   health: publicProcedure.query(() => {
     return { status: "ok", timestamp: new Date() };
   }),
+  dashboard: dashboardRouter,
   repository: repositoryRouter,
   pullRequest: pullRequestRouter,
   review: reviewRouter,
