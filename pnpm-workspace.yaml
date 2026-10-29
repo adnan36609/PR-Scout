@@ -1,4 +1,5 @@
 allowBuilds:
+  '@google/genai': set this to true or false
   "@prisma/client": true
   "@prisma/engines": true
   prisma: true
