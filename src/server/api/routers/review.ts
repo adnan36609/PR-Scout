@@ -73,6 +73,98 @@ export const reviewRouter = createTRPCRouter({
 
       return { reviewId: review.id };
     }),
+  cancel: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const review = await ctx.db.review.findUnique({
+        where: {
+          id: input.id,
+          userId: ctx.user.id,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      if (!review) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Review not found",
+        });
+      }
+
+      // A completed, failed, or already cancelled review cannot be stopped.
+      if (review.status !== "PENDING" && review.status !== "PROCESSING") {
+        return {
+          cancelled: false,
+          status: review.status,
+          cancellationEventSent: false,
+        };
+      }
+
+      // Atomically mark the review as cancelled, but only if it is
+      // still active. This avoids overwriting a concurrent completion.
+      const result = await ctx.db.review.updateMany({
+        where: {
+          id: review.id,
+          userId: ctx.user.id,
+          status: {
+            in: ["PENDING", "PROCESSING"],
+          },
+        },
+        data: {
+          status: "CANCELLED",
+          error: "Cancelled by user",
+        },
+      });
+
+      if (result.count === 0) {
+        const currentReview = await ctx.db.review.findUnique({
+          where: {
+            id: review.id,
+            userId: ctx.user.id,
+          },
+          select: {
+            status: true,
+          },
+        });
+
+        return {
+          cancelled: false,
+          status: currentReview?.status ?? review.status,
+          cancellationEventSent: false,
+        };
+      }
+
+      let cancellationEventSent = true;
+
+      try {
+        await inngest.send({
+          name: "review/pr.cancelled",
+          data: {
+            reviewId: review.id,
+          },
+        });
+      } catch (error) {
+        cancellationEventSent = false;
+
+        console.error("Failed to send review cancellation event", {
+          reviewId: review.id,
+          error,
+        });
+      }
+
+      return {
+        cancelled: true,
+        status: "CANCELLED" as const,
+        cancellationEventSent,
+      };
+    }),
   get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
