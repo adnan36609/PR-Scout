@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,14 +23,66 @@ import { cn } from "@/lib/utils";
 
 type ReviewStatus =
   | "all"
+  | "active"
   | "COMPLETED"
   | "PROCESSING"
   | "PENDING"
   | "FAILED"
   | "CANCELLED";
 
+function parseReviewStatus(status: string | null): ReviewStatus {
+  switch (status) {
+    case "active":
+    case "COMPLETED":
+    case "PROCESSING":
+    case "PENDING":
+    case "FAILED":
+    case "CANCELLED":
+      return status;
+
+    default:
+      return "all";
+  }
+}
+
 export default function ReviewsPage() {
-  const [statusFilter, setStatusFilter] = useState<ReviewStatus>("all");
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-3">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton key={index} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
+      }
+    >
+      <ReviewsPageContent />
+    </Suspense>
+  );
+}
+
+function ReviewsPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const statusFilter = parseReviewStatus(searchParams.get("status"));
+
+  const setStatusFilter = (status: ReviewStatus) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (status === "all") {
+      params.delete("status");
+    } else {
+      params.set("status", status);
+    }
+
+    const query = params.toString();
+
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
 
   const reviews = trpc.review.list.useQuery(
     { limit: 50 },
@@ -49,9 +102,17 @@ export default function ReviewsPage() {
     },
   });
 
-  const filteredReviews = reviews.data?.filter(
-    (r) => statusFilter === "all" || r.status === statusFilter,
-  );
+  const filteredReviews = reviews.data?.filter((review) => {
+    if (statusFilter === "all") {
+      return true;
+    }
+
+    if (statusFilter === "active") {
+      return review.status === "PENDING" || review.status === "PROCESSING";
+    }
+
+    return review.status === statusFilter;
+  });
 
   const statusCounts = {
     all: reviews.data?.length ?? 0,
@@ -63,6 +124,9 @@ export default function ReviewsPage() {
     FAILED: reviews.data?.filter((r) => r.status === "FAILED").length ?? 0,
     CANCELLED:
       reviews.data?.filter((r) => r.status === "CANCELLED").length ?? 0,
+    active:
+      (reviews.data?.filter((r) => r.status === "PENDING").length ?? 0) +
+      (reviews.data?.filter((r) => r.status === "PROCESSING").length ?? 0),
   };
 
   return (
@@ -90,6 +154,7 @@ export default function ReviewsPage() {
         {(
           [
             "all",
+            "active",
             "COMPLETED",
             "PROCESSING",
             "PENDING",
@@ -110,7 +175,9 @@ export default function ReviewsPage() {
             <StatusIcon status={status} className="size-3.5" />
             {status === "all"
               ? "All"
-              : status.charAt(0) + status.slice(1).toLowerCase()}
+              : status === "active"
+                ? "Active"
+                : status.charAt(0) + status.slice(1).toLowerCase()}
             <span
               className={cn(
                 "ml-1 text-xs tabular-nums",
