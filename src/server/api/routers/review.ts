@@ -110,6 +110,7 @@ export const reviewRouter = createTRPCRouter({
         data: {
           status: "CANCELLED",
           error: "Cancelled by user",
+          activeKey: null,
         },
       });
 
