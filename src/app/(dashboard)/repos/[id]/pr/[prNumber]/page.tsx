@@ -211,10 +211,10 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-muted-foreground mb-1">
-                    Merged request
+                    Branch comparison
                   </p>
                   <div className="flex items-center gap-2 text-sm">
-                    <code className="px-2 py-0.5 rounded bg-secondary font-mono text-xs miw truncate">
+                    <code className="px-2 py-0.5 rounded bg-secondary font-mono text-xs min-w-0 truncate">
                       {pr.data.headRef}
                     </code>
                     <ArrowRight className="size-3 text-muted-foreground shrink-0" />
@@ -507,7 +507,7 @@ function PRStatusBadge({
         variant={"secondary"}
         className="gap-1 bg-emerald-600/10 dark:text-emerald-400 border-emerald-500/20 border"
       >
-        <GitMerge className="size-3" />
+        <GitPullRequest className="size-3" />
         Open
       </Badge>
     );
