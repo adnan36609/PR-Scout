@@ -98,6 +98,9 @@ model Review {
   repositoryId String
   userId       String
   prNumber     Int
+  headSha      String?
+  baseSha      String?
+  activeKey    String?      @unique
   prTitle      String
   prUrl        String
   status       ReviewStatus @default(PENDING)
@@ -122,4 +125,31 @@ enum ReviewStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+model GitHubWebhookDelivery {
+  id                 String                @id @default(cuid())
+  deliveryId         String                @unique
+  event              String
+  action             String?
+  repositoryGithubId Int?
+  prNumber           Int?
+  reviewId            String?
+  status              WebhookDeliveryStatus @default(RECEIVED)
+  error               String?               @db.Text
+  attempts            Int                   @default(0)
+  lastAttemptAt       DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([repositoryGithubId, prNumber])
+}
+
+enum WebhookDeliveryStatus {
+  RECEIVED
+  PROCESSING
+  QUEUED
+  IGNORED
+  FAILED
 }
