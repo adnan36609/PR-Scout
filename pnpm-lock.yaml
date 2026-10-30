@@ -248,6 +248,9 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
+      '@inngest/test':
+        specifier: ^1.0.0
+        version: 1.0.0(inngest@4.26.0(@opentelemetry/core@3.0.0(@opentelemetry/api@1.10.0))(express@5.3.0(supports-color@7.2.0))(hono@4.13.13)(next@16.4.3(@babel/core@7.29.7(supports-color@7.2.0))(@opentelemetry/api@1.10.0)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(supports-color@7.2.0)(typescript@5.9.3)(zod@4.6.7))
       '@tailwindcss/turbopack':
         specifier: ^4
         version: 4.3.3
@@ -832,6 +835,11 @@ packages:
 
   '@inngest/ai@0.1.8':
     resolution: {integrity: sha512-DiZ6r3R5FiS0h2p4pzoUIHdjukEDZpDXuG9Z+4s1beOcUn0pBAEovBdlokFCzMLVECXfrkqWWxZEQvgiY6a2ew==}
+
+  '@inngest/test@1.0.0':
+    resolution: {integrity: sha512-T3K6w0o/AHk34zzYhh1lC183ziQUCTEmY+G7ZOFwR5q4vXkbmZpXzbRecuG+Om/mixJnJCjZbt43e6OMR3QAnQ==}
+    peerDependencies:
+      inngest: ^4.0.0
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -4879,6 +4887,10 @@ packages:
     resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
 
+  tinyspy@3.0.2:
+    resolution: {integrity: sha512-n1cw8k1k0x4pgA2+9XrOkFydTerNcJ1zWCO5Nn9scWHTD+5tp8dghT2x1uduQePZTZgd3Tupf+x9BxJjeJi77Q==}
+    engines: {node: '>=14.0.0'}
+
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
@@ -5769,6 +5781,12 @@ snapshots:
     optional: true
 
   '@inngest/ai@0.1.8': {}
+
+  '@inngest/test@1.0.0(inngest@4.26.0(@opentelemetry/core@3.0.0(@opentelemetry/api@1.10.0))(express@5.3.0(supports-color@7.2.0))(hono@4.13.13)(next@16.4.3(@babel/core@7.29.7(supports-color@7.2.0))(@opentelemetry/api@1.10.0)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(supports-color@7.2.0)(typescript@5.9.3)(zod@4.6.7))':
+    dependencies:
+      inngest: 4.26.0(@opentelemetry/core@3.0.0(@opentelemetry/api@1.10.0))(express@5.3.0(supports-color@7.2.0))(hono@4.13.13)(next@16.4.3(@babel/core@7.29.7(supports-color@7.2.0))(@opentelemetry/api@1.10.0)(@types/node@20.19.43)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(supports-color@7.2.0)(typescript@5.9.3)(zod@4.6.7)
+      tinyspy: 3.0.2
+      ulid: 2.4.0
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -6867,7 +6885,7 @@ snapshots:
       fuzzysort: 3.1.0
       kleur: 4.1.5
       ora: 8.2.0
-      postcss: 8.5.23
+      postcss: 8.5.32
       prompts: 2.4.2
       recast: 0.23.21
       socks: 2.8.10
@@ -9898,7 +9916,7 @@ snapshots:
       kleur: 4.1.5
       open: 11.0.4
       ora: 8.2.0
-      postcss: 8.5.23
+      postcss: 8.5.32
       postcss-selector-parser: 7.1.7
       prompts: 2.4.2
       recast: 0.23.21
@@ -10150,6 +10168,8 @@ snapshots:
     dependencies:
       fdir: 6.5.0(picomatch@4.0.7)
       picomatch: 4.0.7
+
+  tinyspy@3.0.2: {}
 
   to-regex-range@5.0.1:
     dependencies:
