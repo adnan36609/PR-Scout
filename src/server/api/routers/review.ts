@@ -6,6 +6,7 @@ import {
   fetchPullRequest,
   getGitHubAccessToken,
 } from "@/server/services/github";
+import { queueReview } from "@/server/services/review-queue";
 
 export const reviewRouter = createTRPCRouter({
   trigger: protectedProcedure
@@ -50,28 +51,17 @@ export const reviewRouter = createTRPCRouter({
         input.prNumber,
       );
 
-      const review = await ctx.db.review.create({
-        data: {
-          repositoryId: repository.id,
-          userId: ctx.user.id,
-          prNumber: pr.number,
-          prTitle: pr.title,
-          prUrl: pr.html_url,
-          status: "PENDING",
-        },
+      const review = await queueReview({
+        repositoryId: repository.id,
+        userId: ctx.user.id,
+        prNumber: pr.number,
+        prTitle: pr.title,
+        prUrl: pr.html_url,
+        headSha: pr.head.sha,
+        baseSha: pr.base.sha,
       });
 
-      await inngest.send({
-        name: "review/pr.requested",
-        data: {
-          reviewId: review.id,
-          repositoryId: repository.id,
-          prNumber: pr.number,
-          userId: ctx.user.id,
-        },
-      });
-
-      return { reviewId: review.id };
+      return { reviewId: review.reviewId };
     }),
   cancel: protectedProcedure
     .input(
