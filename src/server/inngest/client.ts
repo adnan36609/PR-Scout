@@ -1,4 +1,8 @@
 import { Inngest } from "inngest";
 
-// Create a client to send and receive events
-export const inngest = new Inngest({ id: "pr-scout" });
+export const inngest = new Inngest({
+  id: "pr-scout",
+  checkpointing: {
+    maxRuntime: "210s",
+  },
+});
