@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { db } from "@/server/db";
-import { inngest } from "@/server/inngest";
+import { queueReview } from "@/server/services/review-queue";
 
 const PullRequestPayloadSchema = z.object({
   action: z.string().min(1),
@@ -13,6 +13,12 @@ const PullRequestPayloadSchema = z.object({
     title: z.string(),
     html_url: z.string().url(),
     draft: z.boolean(),
+    head: z.object({
+      sha: z.string().min(1),
+    }),
+    base: z.object({
+      sha: z.string().min(1),
+    }),
   }),
 
   repository: z.object({
@@ -44,11 +50,20 @@ function verifySignature(
   );
 }
 
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
+}
+
 export async function POST(request: NextRequest) {
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
 
   if (!secret) {
-    console.error("[GitHub Webhook] GITHUB_WEBHOOK_SECRET is not configured");
+    console.error("[GitHub Webhook] Secret is not configured");
 
     return NextResponse.json(
       { error: "Webhook endpoint is not configured" },
@@ -71,20 +86,43 @@ export async function POST(request: NextRequest) {
   const event = request.headers.get("x-github-event");
   const deliveryId = request.headers.get("x-github-delivery");
 
-  // Verify the signature against the original request body.
   if (!verifySignature(payload, signature, secret)) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
+  if (!event || !deliveryId) {
     return NextResponse.json(
-      { error: "Invalid signature" },
-      { status: 401 },
+      { error: "Missing GitHub webhook headers" },
+      { status: 400 },
     );
   }
 
-  // Ignore events unrelated to pull requests.
+  // Persist events that PR Scout does not process.
+  // This also prevents repeated processing of the same delivery.
   if (event !== "pull_request") {
-    return NextResponse.json(
-      { message: "Event ignored" },
-      { status: 200 },
-    );
+    try {
+      await db.gitHubWebhookDelivery.create({
+        data: {
+          deliveryId,
+          event,
+          status: "IGNORED",
+        },
+      });
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) {
+        console.error("[GitHub Webhook] Failed to record ignored event", {
+          deliveryId,
+          error,
+        });
+
+        return NextResponse.json(
+          { error: "Failed to record webhook delivery" },
+          { status: 500 },
+        );
+      }
+    }
+
+    return NextResponse.json({ message: "Event ignored" }, { status: 200 });
   }
 
   let parsedPayload: unknown;
@@ -98,7 +136,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // TypeScript interfaces do not validate untrusted JSON at runtime.
   const validation = PullRequestPayloadSchema.safeParse(parsedPayload);
 
   if (!validation.success) {
@@ -110,32 +147,128 @@ export async function POST(request: NextRequest) {
 
   const data = validation.data;
 
-  // Review newly opened PRs, new commits, reopened PRs,
-  // and drafts that become ready for review.
-  const supportedActions = [
-    "opened",
-    "synchronize",
-    "reopened",
-    "ready_for_review",
-  ];
-
-  if (!supportedActions.includes(data.action)) {
-    return NextResponse.json(
-      { message: `Action '${data.action}' ignored` },
-      { status: 200 },
-    );
-  }
-
-  // Draft PRs should not trigger an AI review.
-  if (data.pull_request.draft) {
-    return NextResponse.json(
-      { message: "Draft PR ignored" },
-      { status: 200 },
-    );
-  }
+  let delivery;
 
   try {
-    // Find the repository connected to PR Scout.
+    // Create the delivery record once.
+    // A unique constraint prevents duplicate delivery records.
+    try {
+      delivery = await db.gitHubWebhookDelivery.create({
+        data: {
+          deliveryId,
+          event,
+          action: data.action,
+          repositoryGithubId: data.repository.id,
+          prNumber: data.pull_request.number,
+        },
+      });
+    } catch (error) {
+      if (!isUniqueConstraintError(error)) {
+        throw error;
+      }
+
+      delivery = await db.gitHubWebhookDelivery.findUnique({
+        where: { deliveryId },
+      });
+
+      if (!delivery) {
+        throw error;
+      }
+    }
+
+    // Completed or ignored deliveries must not run again.
+    if (delivery.status === "QUEUED" || delivery.status === "IGNORED") {
+      return NextResponse.json(
+        {
+          message: "Delivery already processed",
+          reviewId: delivery.reviewId,
+        },
+        { status: 200 },
+      );
+    }
+
+    // Recover abandoned PROCESSING deliveries after five minutes.
+    const staleBefore = new Date(Date.now() - 5 * 60 * 1000);
+
+    const claimed = await db.gitHubWebhookDelivery.updateMany({
+      where: {
+        id: delivery.id,
+        OR: [
+          {
+            status: {
+              in: ["RECEIVED", "FAILED"],
+            },
+          },
+          {
+            status: "PROCESSING",
+            OR: [
+              { lastAttemptAt: { lt: staleBefore } },
+              { lastAttemptAt: null },
+            ],
+          },
+        ],
+      },
+      data: {
+        status: "PROCESSING",
+        attempts: {
+          increment: 1,
+        },
+        lastAttemptAt: new Date(),
+        error: null,
+      },
+    });
+
+    if (claimed.count === 0) {
+      const currentDelivery = await db.gitHubWebhookDelivery.findUnique({
+        where: { deliveryId },
+      });
+
+      return NextResponse.json(
+        {
+          message: "Delivery is already being processed",
+          status: currentDelivery?.status,
+          reviewId: currentDelivery?.reviewId,
+        },
+        { status: 200 },
+      );
+    }
+
+    const supportedActions = [
+      "opened",
+      "synchronize",
+      "reopened",
+      "ready_for_review",
+    ];
+
+    if (!supportedActions.includes(data.action)) {
+      await db.gitHubWebhookDelivery.update({
+        where: { id: delivery.id },
+        data: {
+          status: "IGNORED",
+          error: null,
+        },
+      });
+
+      return NextResponse.json(
+        { message: `Action '${data.action}' ignored` },
+        { status: 200 },
+      );
+    }
+
+    if (data.pull_request.draft) {
+      await db.gitHubWebhookDelivery.update({
+        where: { id: delivery.id },
+        data: {
+          status: "IGNORED",
+        },
+      });
+
+      return NextResponse.json(
+        { message: "Draft PR ignored" },
+        { status: 200 },
+      );
+    }
+
     const repository = await db.repository.findUnique({
       where: {
         githubId: data.repository.id,
@@ -143,92 +276,55 @@ export async function POST(request: NextRequest) {
     });
 
     if (!repository) {
+      await db.gitHubWebhookDelivery.update({
+        where: { id: delivery.id },
+        data: {
+          status: "IGNORED",
+        },
+      });
+
       return NextResponse.json(
         { message: "Repository not connected" },
         { status: 200 },
       );
     }
 
-    // Avoid starting another review while one is active.
-    const existingReview = await db.review.findFirst({
-      where: {
-        repositoryId: repository.id,
-        prNumber: data.pull_request.number,
-        status: {
-          in: ["PENDING", "PROCESSING"],
-        },
-      },
+    // Create a review or recover the review associated
+    // with an earlier attempt of this same delivery.
+    const review = await queueReview({
+      repositoryId: repository.id,
+      userId: repository.userId,
+      prNumber: data.pull_request.number,
+      prTitle: data.pull_request.title,
+      prUrl: data.pull_request.html_url,
+      headSha: data.pull_request.head.sha,
+      deliveryId,
+      existingReviewId: delivery.reviewId ?? undefined,
+      baseSha: data.pull_request.base.sha,
     });
 
-    if (existingReview) {
-      return NextResponse.json(
-        {
-          message: "Review already in progress",
-          reviewId: existingReview.id,
-        },
-        { status: 200 },
-      );
-    }
-
-    // Create a review record before sending its background event.
-    const review = await db.review.create({
+    await db.gitHubWebhookDelivery.update({
+      where: { id: delivery.id },
       data: {
-        repositoryId: repository.id,
-        userId: repository.userId,
-        prNumber: data.pull_request.number,
-        prTitle: data.pull_request.title,
-        prUrl: data.pull_request.html_url,
-        status: "PENDING",
+        status: "QUEUED",
+        reviewId: review.reviewId,
+        error: null,
       },
     });
-
-    try {
-      await inngest.send({
-        id: `pr-scout-review-${review.id}`,
-        name: "review/pr.requested",
-        data: {
-          reviewId: review.id,
-          repositoryId: repository.id,
-          prNumber: data.pull_request.number,
-          userId: repository.userId,
-        },
-      });
-    } catch (error) {
-      console.error("[GitHub Webhook] Failed to enqueue review", {
-        reviewId: review.id,
-        deliveryId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      // Do not overwrite a review that has already started processing.
-      await db.review.updateMany({
-        where: {
-          id: review.id,
-          status: "PENDING",
-        },
-        data: {
-          status: "FAILED",
-          error: "Failed to enqueue review from GitHub webhook.",
-        },
-      });
-
-      return NextResponse.json(
-        { error: "Failed to enqueue review" },
-        { status: 500 },
-      );
-    }
 
     console.info("[GitHub Webhook] Review queued", {
       deliveryId,
-      reviewId: review.id,
+      reviewId: review.reviewId,
       repositoryId: repository.id,
       prNumber: data.pull_request.number,
+      headSha: data.pull_request.head.sha,
+      created: review.created,
     });
 
     return NextResponse.json(
       {
-        message: "Review triggered",
-        reviewId: review.id,
+        message: review.created ? "Review triggered" : "Review already exists",
+        reviewId: review.reviewId,
       },
       { status: 200 },
     );
@@ -237,6 +333,26 @@ export async function POST(request: NextRequest) {
       deliveryId,
       error: error instanceof Error ? error.message : String(error),
     });
+
+    // Keep the associated review intact.
+    // A subsequent delivery retry can resume queueing it.
+    await db.gitHubWebhookDelivery
+      .updateMany({
+        where: {
+          deliveryId,
+          status: "PROCESSING",
+        },
+        data: {
+          status: "FAILED",
+          error: "Webhook processing failed. The delivery can be retried.",
+        },
+      })
+      .catch((updateError) => {
+        console.error("[GitHub Webhook] Failed to record delivery failure", {
+          deliveryId,
+          error: updateError,
+        });
+      });
 
     return NextResponse.json(
       { error: "Failed to process webhook" },
