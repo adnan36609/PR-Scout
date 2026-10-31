@@ -120,6 +120,12 @@ function ReviewsPageContent() {
     },
   });
 
+  const cancelReview = trpc.review.cancel.useMutation({
+    onSuccess: () => {
+      reviews.refetch();
+    },
+  });
+
   const filteredReviews = reviews.data?.filter((review) => {
     if (statusFilter === "all") {
       return true;
@@ -263,6 +269,15 @@ function ReviewsPageContent() {
                 deleteReview.isPending &&
                 deleteReview.variables?.id === review.id
               }
+              onCancel={
+                review.status === "PENDING" || review.status === "PROCESSING"
+                  ? () => cancelReview.mutate({ id: review.id })
+                  : undefined
+              }
+              isCancelling={
+                cancelReview.isPending &&
+                cancelReview.variables?.id === review.id
+              }
             />
           ))}
         </div>
@@ -291,6 +306,8 @@ interface ReviewCardProps {
   onRetry?: () => void;
   onDelete: () => void;
   isDeleting: boolean;
+  onCancel?: () => void;
+  isCancelling: boolean;
 }
 
 function ReviewCard({
@@ -298,6 +315,8 @@ function ReviewCard({
   onRetry,
   onDelete,
   isDeleting,
+  onCancel,
+  isCancelling,
 }: ReviewCardProps) {
   const commentCount = Array.isArray(review.comments)
     ? review.comments.length
@@ -397,6 +416,23 @@ function ReviewCard({
             >
               <ExternalLink className="size-4" />
             </a>
+            {onCancel && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isCancelling}
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  "Cancel"
+                )}
+              </Button>
+            )}
             {review.status === "FAILED" && onRetry ? (
               <Button onClick={onRetry}>Retry</Button>
             ) : (
