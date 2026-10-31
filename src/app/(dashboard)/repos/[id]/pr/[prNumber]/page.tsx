@@ -204,7 +204,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
       <Card>
         <CardContent className="p-0">
           <div className="flex items-center divide-x divide-border/60">
-            <div className="flex-1 p-4">
+            <div className="flex-1 min-w-0 p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-muted">
                   <GitBranch className="size-4 text-muted-foreground" />
@@ -218,15 +218,14 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                       {pr.data.headRef}
                     </code>
                     <ArrowRight className="size-3 text-muted-foreground shrink-0" />
-                    <code className="px-2 py-0.5 rounded bg-secondary font-mono text-xs truncate">
+                    <code className="px-2 py-0.5 rounded bg-secondary font-mono text-xs min-w-0 truncate">
                       {pr.data.baseRef}
                     </code>
                   </div>
                 </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-6 px-6 py-4">
+            <div className="flex shrink-0 items-center gap-6 px-6 py-4">
               <StatItem
                 icon={Plus}
                 value={pr.data.additions}
@@ -247,7 +246,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
               />
             </div>
 
-            <div className="px-6 py-4 flex items-center gap-3">
+            <div className="px-6 py-4 flex shrink-0 items-center gap-3">
               <div className="flex items-center gap-2 rounded-lg px-3 py-1.5">
                 <ReviewStatusBadge
                   status={latestReview.data?.status ?? null}
