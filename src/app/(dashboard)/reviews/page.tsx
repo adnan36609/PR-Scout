@@ -190,7 +190,11 @@ function ReviewsPageContent() {
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <StatusIcon status={status} className="size-3.5" />
+            <StatusIcon
+              status={status}
+              className="size-3.5"
+              spin={statusCounts[status] > 0}
+            />
             {status === "all"
               ? "All"
               : status === "active"
@@ -496,9 +500,11 @@ function StatusBadge({ status }: { status: string }) {
 function StatusIcon({
   status,
   className,
+  spin = true,
 }: {
   status: string;
   className?: string;
+  spin?: boolean;
 }) {
   switch (status) {
     case "COMPLETED":
@@ -511,7 +517,8 @@ function StatusIcon({
       return (
         <Loader2
           className={cn(
-            "text-blue-600 dark:text-blue-400 animate-spin",
+            "text-blue-600 dark:text-blue-400",
+            spin && "animate-spin",
             className,
           )}
         />
