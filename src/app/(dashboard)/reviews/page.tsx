@@ -18,7 +18,19 @@ import {
   FileText,
   ExternalLink,
   RefreshCw,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 type ReviewStatus =
@@ -97,6 +109,12 @@ function ReviewsPageContent() {
   );
 
   const triggerReview = trpc.review.trigger.useMutation({
+    onSuccess: () => {
+      reviews.refetch();
+    },
+  });
+
+  const deleteReview = trpc.review.delete.useMutation({
     onSuccess: () => {
       reviews.refetch();
     },
@@ -236,6 +254,11 @@ function ReviewsPageContent() {
                       })
                   : undefined
               }
+              onDelete={() => deleteReview.mutate({ id: review.id })}
+              isDeleting={
+                deleteReview.isPending &&
+                deleteReview.variables?.id === review.id
+              }
             />
           ))}
         </div>
@@ -262,9 +285,16 @@ interface ReviewCardProps {
     };
   };
   onRetry?: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
 }
 
-function ReviewCard({ review, onRetry }: ReviewCardProps) {
+function ReviewCard({
+  review,
+  onRetry,
+  onDelete,
+  isDeleting,
+}: ReviewCardProps) {
   const commentCount = Array.isArray(review.comments)
     ? review.comments.length
     : 0;
@@ -379,6 +409,48 @@ function ReviewCard({ review, onRetry }: ReviewCardProps) {
                         : "Pending"}
                 </Button>
               </Link>
+            )}
+            {["COMPLETED", "FAILED", "CANCELLED"].includes(review.status) && (
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={isDeleting}
+                      aria-label="Delete review"
+                      title="Delete review"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    />
+                  }
+                >
+                  {isDeleting ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="size-4" />
+                  )}
+                </AlertDialogTrigger>
+
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete review?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This permanently removes the review and its findings from
+                      PR Scout. It will not affect the pull request on GitHub.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={onDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>

@@ -156,6 +156,47 @@ export const reviewRouter = createTRPCRouter({
         cancellationEventSent,
       };
     }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db.review.deleteMany({
+        where: {
+          id: input.id,
+          userId: ctx.user.id,
+          status: {
+            in: ["COMPLETED", "FAILED", "CANCELLED"],
+          },
+        },
+      });
+
+      if (result.count === 1) {
+        return { deleted: true };
+      }
+
+      const review = await ctx.db.review.findFirst({
+        where: {
+          id: input.id,
+          userId: ctx.user.id,
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (!review) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Review not found",
+        });
+      }
+
+      throw new TRPCError({
+        code: "PRECONDITION_FAILED",
+        message: "Cancel this review before deleting it.",
+      });
+    }),
+
   get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
