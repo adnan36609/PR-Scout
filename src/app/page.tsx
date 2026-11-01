@@ -1,47 +1,67 @@
-import { HealthCheck } from "@/components/health-check";
-import { auth } from "@/server/auth";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+import { auth } from "@/server/auth";
+import { LandingHeader } from "@/components/landing-header";
+import { HeroSection } from "@/components/hero-section";
+import { TechStack } from "@/components/tech-stack";
+import { FeaturesSection } from "@/components/features-section";
+import { WorkflowSection } from "@/components/workflow-section";
+import { ReliabilitySection } from "@/components/reliability-section";
+import { CtaSection } from "@/components/cta-section";
+import { LandingFooter } from "@/components/landing-footer";
+import { InteractiveBackground } from "@/components/interactive-background";
+import { ScrollProgress } from "@/components/scroll-progress";
+import { Reveal } from "@/components/reveal";
+
+export const metadata: Metadata = {
+  title: "PR Scout — AI-Powered Pull Request Reviews",
+  description:
+    "Review GitHub pull requests with AI-assisted findings, severity classifications, and risk scores.",
+  openGraph: {
+    title: "PR Scout — AI-Powered Pull Request Reviews",
+    description:
+      "Understand pull-request changes with structured AI-assisted code reviews.",
+    type: "website",
+  },
+};
 
 export default async function Home() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-
-  if (session?.user) {
-    redirect("/dashboard");
-  }
+  const isAuthenticated = Boolean(session?.user);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Welcome to PR Scout
-        </h1>
-
-        <p className="mt-2 text-muted-foreground">
-          AI-powered code reviews for your GitHub pull requests.
-        </p>
+    <main id="top" className="min-h-screen overflow-x-clip text-foreground">
+      <InteractiveBackground />
+      <ScrollProgress />
+      <LandingHeader isAuthenticated={isAuthenticated} />
+      <div className="container mx-auto space-y-20 px-4 pb-10 pt-10 sm:space-y-24 sm:pt-14 lg:space-y-28">
+        <HeroSection isAuthenticated={isAuthenticated} />
+        <Reveal>
+          <TechStack />
+        </Reveal>
+        <Reveal>
+          <FeaturesSection />
+        </Reveal>
+        <WorkflowSection />
+        <ReliabilitySection />
       </div>
 
-      <div className="flex items-center gap-3">
-        <Link
-          href="/sign-in"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-        >
-          Sign In
-        </Link>
-
-        <Link
-          href="/sign-up"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          Get Started
-        </Link>
+      <div className="relative flex min-h-[calc(100svh-4rem)] flex-col">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-72 bg-linear-to-t from-emerald-500/10 to-transparent"
+        />
+        <div className="container mx-auto flex flex-1 items-center px-4 py-8">
+          <div className="w-full">
+            <Reveal>
+              <CtaSection isAuthenticated={isAuthenticated} />
+            </Reveal>
+          </div>
+        </div>
+        <LandingFooter />
       </div>
-
-      <HealthCheck />
     </main>
   );
 }

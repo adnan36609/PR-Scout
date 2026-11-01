@@ -43,10 +43,21 @@ export function Header({ user }: HeaderProps) {
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-8">
+          <Link
+            href="/"
+            aria-label="PR Scout home"
+            className="flex items-center gap-2 text-base font-bold tracking-tight text-foreground transition-opacity hover:opacity-80"
+          >
+            <GitPullRequest className="size-5 text-primary" />
+            <span>PR Scout</span>
+          </Link>
+
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+                pathname === item.href ||
+                pathname.startsWith(`${item.href}/`);
+
               const Icon = item.icon;
 
               return (
