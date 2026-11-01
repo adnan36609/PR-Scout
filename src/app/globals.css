@@ -134,3 +134,38 @@
     scroll-behavior: smooth;
   }
 }
+
+html,
+body {
+  overflow-x: clip;
+}
+
+@keyframes cta-drift {
+  0%,
+  100% {
+    transform: translate(-12rem, 0) scale(1);
+  }
+  50% {
+    transform: translate(12rem, 1.5rem) scale(1.15);
+  }
+}
+
+.cta-glow {
+  animation: cta-drift 9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-glow {
+    animation: none;
+  }
+}
+
+::selection {
+  background: color-mix(in oklab, #10b981 35%, transparent);
+  color: var(--foreground);
+}
+
+.bg-clip-text {
+  padding-bottom: 0.15em;
+  margin-bottom: -0.15em;
+}
