@@ -9,7 +9,7 @@ export function CtaSection({ isAuthenticated }: { isAuthenticated: boolean }) {
       <SpotlightCard className="rounded-3xl p-8 sm:p-12">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-48 w-xl -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl"
+          className="cta-glow pointer-events-none absolute -top-24 left-1/2 -ml-72 h-48 w-xl rounded-full bg-emerald-500/20 blur-3xl"
         />
         <div className="relative flex flex-col items-center text-center">
           <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">

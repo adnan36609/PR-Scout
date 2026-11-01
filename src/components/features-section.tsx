@@ -156,9 +156,9 @@ export function FeaturesSection() {
         />
       </Reveal>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {FEATURES.map((f, i) => (
-          <Reveal key={f.title} delay={i * 0.08} className="h-full">
+          <Reveal key={f.title} delay={i * 0.08} className="h-full min-w-0">
             <SpotlightCard className="h-full p-5">
               <div className="flex items-center gap-3">
                 <div className={cn("grid size-9 shrink-0 place-items-center rounded-lg", f.tint)}>

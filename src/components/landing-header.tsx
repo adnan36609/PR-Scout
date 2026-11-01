@@ -44,7 +44,7 @@ export function LandingHeader({ isAuthenticated }: { isAuthenticated: boolean })
           <div className="mx-1 hidden h-5 w-px bg-border sm:block" />
           {isAuthenticated ? (
             <PrimaryAction isAuthenticated compact>
-              Open Dashboard
+              <span className="hidden sm:inline">Open </span>Dashboard
             </PrimaryAction>
           ) : (
             <>

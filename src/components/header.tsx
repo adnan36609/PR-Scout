@@ -55,8 +55,7 @@ export function Header({ user }: HeaderProps) {
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive =
-                pathname === item.href ||
-                pathname.startsWith(`${item.href}/`);
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
 
               const Icon = item.icon;
 
@@ -72,7 +71,7 @@ export function Header({ user }: HeaderProps) {
                   )}
                 >
                   <Icon className="size-4" />
-                  {item.label}
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               );
             })}

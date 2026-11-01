@@ -104,7 +104,7 @@ export function WorkflowSection() {
               title="From GitHub pull request to clear findings."
               description="A straightforward review flow that keeps you in control of what gets analyzed and what happens next."
             />
-            <div className="mb-10 h-px bg-muted">
+            <div className="hidden lg:block mb-10 h-px bg-muted">
               <motion.div
                 style={{ scaleX: progress }}
                 className="h-px origin-left bg-emerald-400"
@@ -134,7 +134,7 @@ export function WorkflowSection() {
                 ))}
               </ol>
 
-              <div className="rounded-2xl border border-border bg-card/70 p-6">
+              <div className="hidden lg:block rounded-2xl border border-border bg-card/70 p-6">
                 <div className="mb-6 flex gap-1.5">
                   <span className="size-2.5 rounded-full bg-muted-foreground/30" />
                   <span className="size-2.5 rounded-full bg-muted-foreground/30" />

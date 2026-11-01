@@ -4,6 +4,7 @@ import { HeroPreview } from "@/components/hero-preview";
 import { GitHubMark } from "@/components/github-mark";
 import { PrimaryAction } from "@/components/primary-action";
 import { ScrollTilt } from "@/components/scroll-tilt";
+import { HoverTilt } from "@/components/hover-tilt";
 
 const checklist = [
   "Findings, severity and risk score in one place",
@@ -65,9 +66,10 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
           ))}
         </ul>
       </div>
-
       <ScrollTilt>
-        <HeroPreview />
+        <HoverTilt>
+          <HeroPreview />
+        </HoverTilt>
       </ScrollTilt>
     </section>
   );

@@ -1,7 +1,7 @@
 import { GitPullRequest } from "lucide-react";
 import { GitHubMark } from "@/components/github-mark";
 import { LegalDialog } from "@/components/legal-dialog";
-import Link from "next/link";
+import { LandingTopLink } from "@/components/landing-top-link";
 
 const LINKS = [
   { label: "Features", href: "#features" },
@@ -13,7 +13,11 @@ const CONTACT_EMAIL = "adnan36609@gmail.com";
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-border">
+    <footer className="relative border-t border-border bg-muted/80 dark:bg-black/60">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-emerald-400/40 to-transparent"
+      />
       <div className="container mx-auto grid gap-8 px-4 py-10 md:grid-cols-[1.4fr_1fr_1.2fr]">
         <div>
           <div className="flex items-center gap-2.5">
@@ -93,7 +97,7 @@ export function LandingFooter() {
               </p>
               <p>
                 <span className="text-foreground">Stored data.</span> Review
-                results (findings, severity, risk score) are saved in PR Scout's
+                results (findings, severity, risk score) are saved in PR Scout&apos;s
                 database so you can view them later. You can delete a review
                 from the Reviews page.
               </p>
@@ -119,19 +123,16 @@ export function LandingFooter() {
               </p>
               <p>
                 Only connect repositories you are allowed to share, and do not
-                use PR Scout for abuse or to access code you don't have rights
+                use PR Scout for abuse or to access code you don&apos;t have rights
                 to.
               </p>
               <p>These terms may change as the project evolves.</p>
             </LegalDialog>
           </nav>
 
-          <a
-            href="#top"
-            className="transition-colors hover:text-foreground md:justify-self-end"
-          >
+          <LandingTopLink className="transition-colors hover:text-foreground md:justify-self-end">
             Back to top ↑
-          </a>
+          </LandingTopLink>
         </div>
       </div>
     </footer>

@@ -51,7 +51,7 @@ export function ReliabilitySection() {
             />
 
             <div className="overflow-hidden rounded-2xl border border-border bg-card/70">
-              <div className="flex items-center gap-2 border-b border-border px-8 py-5 font-mono text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 border-b border-border px-4 py-4 sm:px-4 sm:py-5 font-mono text-sm text-muted-foreground">
                 <span className="size-2 rounded-full bg-emerald-400" />
                 Simulated review run · stage {active + 1}/{STAGES.length} ·
                 scroll to advance
@@ -90,7 +90,7 @@ export function ReliabilitySection() {
                         </span>
                         <span
                           className={cn(
-                            "text-xs transition-colors sm:text-sm",
+                            "text-[10px] transition-colors sm:text-sm",
                             i <= active
                               ? "text-foreground"
                               : "text-muted-foreground",
@@ -129,7 +129,7 @@ export function ReliabilitySection() {
                   </AnimatePresence>
                 </div>
 
-                <ul className="space-y-3.5 p-8 font-mono text-sm">
+                <ul className="space-y-3 p-5 sm:space-y-3.5 sm:p-8 font-mono text-sm">
                   {STAGES.map((s, i) => (
                     <motion.li
                       key={s.log}
@@ -150,7 +150,7 @@ export function ReliabilitySection() {
                 </ul>
               </div>
 
-              <div className="border-t border-border px-8 py-5 text-sm text-muted-foreground">
+              <div className="border-t border-border px-4 py-4 sm:px-4 sm:py-5 text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">
                   Cancellation controls:
                 </span>{" "}
