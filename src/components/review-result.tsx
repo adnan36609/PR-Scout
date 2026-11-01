@@ -141,8 +141,8 @@ export function ReviewResult({ review }: ReviewResultProps) {
             <div>
               <h3 className="font-medium">Review cancelled</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                This review was stopped. You can run it again whenever you&apos;re
-                ready.
+                This review was stopped. You can run it again whenever
+                you&apos;re ready.
               </p>
             </div>
           </div>
@@ -344,22 +344,24 @@ function CommentCard({
 
   return (
     <Card>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full text-left"
-      >
-        <div className="p-4 flex items-start gap-3">
-          <div
-            className={cn(
-              "my-0.5 w-1 h-12 rounded-full shrink-0",
-              severityConfig.bar,
-            )}
-          />
+      <div className="p-4 flex items-start gap-3">
+        <div
+          className={cn(
+            "my-0.5 w-1 h-12 rounded-full shrink-0",
+            severityConfig.bar,
+          )}
+        />
 
-          <div className="flex-1 min-w-0 space-y-2">
+        <div className="flex-1 min-w-0 space-y-2">
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+            className="w-full text-left space-y-2"
+          >
             <div className="flex items-center gap-2 flex-wrap">
               <Badge
-                variant={"outline"}
+                variant="outline"
                 className={cn(
                   "text-[10px] uppercase tracking-wider font-semibold",
                   severityConfig.badge,
@@ -369,7 +371,7 @@ function CommentCard({
               </Badge>
 
               {comment.category && (
-                <Badge variant={"secondary"} className="gap-1 text-xs">
+                <Badge variant="secondary" className="gap-1 text-xs">
                   {React.createElement(CategoryIcon, {
                     className: "size-3",
                   })}
@@ -394,28 +396,28 @@ function CommentCard({
             >
               {comment.message}
             </p>
+          </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                copyLocation();
-              }}
-              className="group/file inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <FileCode2 className="size-3.5" />
-              {directory && <span className="opacity-60">{directory}</span>}
-              <span className="font-medium text-foreground ">{fileName}</span>
-              <span className="text-foreground">:</span>
-              <span className="text-primary font-medium">{comment.line}</span>
-              {copied ? (
-                <Check className="size-3.5 text-emerald-500" />
-              ) : (
-                <Copy className="size-3.5 opacity-0 group-hover/file:opacity-100 trantransition-opacity" />
-              )}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={copyLocation}
+            aria-label={`Copy location ${comment.file}:${comment.line}`}
+            className="group/file inline-flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <FileCode2 className="size-3.5" />
+            {directory && <span className="opacity-60">{directory}</span>}
+            <span className="font-medium text-foreground">{fileName}</span>
+            <span className="text-foreground">:</span>
+            <span className="text-primary font-medium">{comment.line}</span>
+
+            {copied ? (
+              <Check className="size-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="size-3.5 opacity-0 group-hover/file:opacity-100 transition-opacity" />
+            )}
+          </button>
         </div>
-      </button>
+      </div>
 
       {expanded && comment.suggestion && (
         <div className="px-4 pb-4">
