@@ -33,6 +33,21 @@ type PageProps = {
   params: Promise<{ id: string; prNumber: string }>;
 };
 
+function timeAgo(date: Date | string): string {
+  const diffMin = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const hours = Math.floor(diffMin / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function PullRequestDetailPage({ params }: PageProps) {
   const { id, prNumber } = use(params);
   const prNum = parseInt(prNumber, 10);
@@ -85,8 +100,8 @@ export default function PullRequestDetailPage({ params }: PageProps) {
       <div className="space-y-8">
         <div className="flex items-center gap-4">
           <Skeleton className="size-10 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-96" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-7 w-96 max-w-full" />
             <Skeleton className="h-4 w-64" />
           </div>
         </div>
@@ -151,7 +166,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <h1 className="text-xl font-semibold tracking-tight truncate">
+                  <h1 className="text-lg font-semibold tracking-tight wrap-break-word sm:truncate sm:text-xl">
                     {pr.data.title}
                   </h1>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -176,7 +191,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
             >
               <Button variant={"outline"} size={"sm"} className="gap-2">
                 <ExternalLink className="size-4" />
-                GitHub
+                <span className="hidden sm:inline">GitHub</span>
               </Button>
             </a>
           </div>
@@ -196,6 +211,9 @@ export default function PullRequestDetailPage({ params }: PageProps) {
             <span className="text-muted-foreground/40">•</span>
             <span className="flex items-center gap-1.5">
               <Clock className="size-3.5" />
+              {isMerged && pr.data.mergedAt
+                ? `merged ${timeAgo(pr.data.mergedAt)}`
+                : `opened ${timeAgo(pr.data.createdAt)}`}
             </span>
           </div>
         </div>
@@ -203,7 +221,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
 
       <Card>
         <CardContent className="p-0">
-          <div className="flex items-center divide-x divide-border/60">
+          <div className="flex flex-col divide-y divide-border/60 lg:flex-row lg:items-center lg:divide-x lg:divide-y-0">
             <div className="flex-1 min-w-0 p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-muted">
@@ -225,7 +243,7 @@ export default function PullRequestDetailPage({ params }: PageProps) {
                 </div>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-6 px-6 py-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-4 lg:shrink-0 lg:px-6">
               <StatItem
                 icon={Plus}
                 value={pr.data.additions}
@@ -246,8 +264,8 @@ export default function PullRequestDetailPage({ params }: PageProps) {
               />
             </div>
 
-            <div className="px-6 py-4 flex shrink-0 items-center gap-3">
-              <div className="flex items-center gap-2 rounded-lg px-3 py-1.5">
+            <div className="flex items-center gap-3 px-4 py-4 lg:shrink-0 lg:px-6">
+              <div className="flex flex-wrap items-center gap-2 rounded-lg py-1.5 lg:px-3">
                 <ReviewStatusBadge
                   status={latestReview.data?.status ?? null}
                   completedAt={

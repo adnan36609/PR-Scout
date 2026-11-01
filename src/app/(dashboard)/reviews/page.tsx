@@ -174,7 +174,7 @@ function ReviewsPageContent() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap p-1 bg-muted/50 rounded-lg w-fit">
+      <div className="flex max-w-full items-center gap-1 overflow-x-auto p-1 bg-muted/50 rounded-lg w-fit scrollbar-none [&::-webkit-scrollbar]:hidden">
         {(
           [
             "all",
@@ -190,7 +190,7 @@ function ReviewsPageContent() {
             key={status}
             onClick={() => setStatusFilter(status)}
             className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+              "flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-md text-sm font-medium transition-all",
               statusFilter === status
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
@@ -221,7 +221,7 @@ function ReviewsPageContent() {
       </div>
 
       {reviews.isLoading ? (
-        <div>
+        <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-xl" />
           ))}
@@ -342,7 +342,7 @@ function ReviewCard({
   return (
     <Card className="group hover:border-border transition-colors">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="flex items-start gap-4 min-w-0 flex-1">
             <div
               className={cn(
@@ -356,14 +356,14 @@ function ReviewCard({
               <div className="flex items-center gap-2 flex-wrap">
                 <Link
                   href={`/repos/${review.repository.id}/pr/${review.prNumber}`}
-                  className="font-medium hover:text-primary transition-colors truncate"
+                  className="max-w-full font-medium hover:text-primary transition-colors truncate"
                 >
                   {review.prTitle}
                 </Link>
                 <StatusBadge status={review.status} />
               </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="font-medium">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                <span className="max-w-full truncate font-medium">
                   {review.repository.fullName}
                 </span>
                 <span className="text-muted-foreground/50">•</span>
@@ -407,7 +407,7 @@ function ReviewCard({
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 pl-12 sm:shrink-0 sm:pl-0">
             <a
               href={review.prUrl}
               target="_blank"

@@ -240,7 +240,7 @@ export default function ReposPage() {
               </div>
             ) : (
               <>
-                <div className="px-6 py-4 border-b border-border/60 flex items-center gap-4">
+                <div className="px-4 py-4 sm:px-6 border-b border-border/60 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                     <Input
@@ -315,18 +315,8 @@ export default function ReposPage() {
                       </>
                     ) : (
                       <>
-                        {connectMutation.isPending ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 animate-spin" />
-                            Connecting...
-                          </>
-                        ) : (
-                          <>
-                            Connect
-                            {selectedRepos.size > 0 &&
-                              ` (${selectedRepos.size})`}
-                          </>
-                        )}
+                        Connect
+                        {selectedRepos.size > 0 && ` (${selectedRepos.size})`}
                       </>
                     )}
                   </Button>
@@ -375,7 +365,7 @@ export default function ReposPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-1 md:grid-cols-2">
             {connectedRepos.data?.map((repo) => (
               <ConnectedRepoCard
                 key={repo.id}
@@ -458,7 +448,7 @@ function ConnectedRepoCard({
                   variant="ghost"
                   size="icon-sm"
                   disabled={isDisconnecting}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  className="sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 />
               }
             >
@@ -531,7 +521,7 @@ function RepoSelectItem({
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-center gap-4 px-6 py-4 transition-colors",
+        "flex cursor-pointer items-center gap-3 px-4 py-4 sm:gap-4 sm:px-6 transition-colors",
         selected ? "bg-primary/5" : "hover:bg-muted/50",
       )}
     >
@@ -543,7 +533,7 @@ function RepoSelectItem({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="font-medium">{repo.fullName}</span>
+          <span className="font-medium truncate">{repo.fullName}</span>
 
           {repo.private && (
             <Lock className="size-3 text-muted-foreground shrink-0" />
@@ -568,7 +558,7 @@ function RepoSelectItem({
         )}
       </div>
 
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="hidden items-center gap-4 shrink-0 sm:flex">
         {repo.stars > 0 && (
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Star className="size-3" />

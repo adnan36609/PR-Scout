@@ -13,6 +13,7 @@ import {
   FolderGit2,
   GitPullRequest,
 } from "lucide-react";
+import { Reveal } from "@/components/reveal";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -28,7 +29,7 @@ export default function DashboardPage() {
           <Skeleton className="h-5 w-80 max-w-full" />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }, (_, index) => (
             <Skeleton key={index} className="h-32 rounded-xl" />
           ))}
@@ -142,47 +143,52 @@ export default function DashboardPage() {
         <>
           <section
             aria-label="Review statistics"
-            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+            className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
           >
-            {metrics.map((metric) => {
+            {metrics.map((metric, index) => {
               const Icon = metric.icon;
 
               return (
-                <Link
+                <Reveal
                   key={metric.label}
-                  href={metric.href}
-                  aria-label={`${metric.label}: ${metric.value}. View details.`}
-                  className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  delay={index * 0.07}
+                  className="h-full"
                 >
-                  <Card className="h-full border-border/70 transition-all duration-200 group-hover:border-primary/40 group-hover:bg-muted/30 group-hover:shadow-sm">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm text-muted-foreground">
-                            {metric.label}
-                          </p>
+                  <Link
+                    href={metric.href}
+                    aria-label={`${metric.label}: ${metric.value}. View details.`}
+                    className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Card className="h-full border-border/70 transition-all duration-200 group-hover:border-primary/40 group-hover:bg-muted/30 group-hover:shadow-sm">
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm text-muted-foreground">
+                              {metric.label}
+                            </p>
 
-                          <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
-                            {metric.value}
-                          </p>
+                            <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums">
+                              {metric.value}
+                            </p>
+                          </div>
+
+                          <div
+                            className={cn(
+                              "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                              metric.iconClass,
+                            )}
+                          >
+                            <Icon className="size-5" />
+                          </div>
                         </div>
 
-                        <div
-                          className={cn(
-                            "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                            metric.iconClass,
-                          )}
-                        >
-                          <Icon className="size-5" />
-                        </div>
-                      </div>
-
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        {metric.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          {metric.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </Reveal>
               );
             })}
           </section>
