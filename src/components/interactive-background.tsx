@@ -13,7 +13,7 @@ export function InteractiveBackground() {
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
 
     let tx = window.innerWidth / 2;
     let ty = window.innerHeight / 3;
@@ -25,7 +25,14 @@ export function InteractiveBackground() {
       tx = e.clientX;
       ty = e.clientY;
     };
-    const tick = () => {
+    const tick = (t: number) => {
+      if (coarse) {
+        tx =
+          window.innerWidth / 2 + Math.cos(t / 2500) * window.innerWidth * 0.3;
+        ty =
+          window.innerHeight / 3 +
+          Math.sin(t / 3200) * window.innerHeight * 0.2;
+      }
       x += (tx - x) * 0.12;
       y += (ty - y) * 0.12;
       el.style.setProperty("--mx", `${x}px`);
@@ -48,25 +55,11 @@ export function InteractiveBackground() {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{ "--mx": "50%", "--my": "30%" } as React.CSSProperties}
     >
-      {/* faint base grid */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: line(
-            "color-mix(in oklab, var(--foreground) 7%, transparent)",
-          ),
-          backgroundSize: GRID,
-          maskImage:
-            "radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse at 50% 0%, black 30%, transparent 75%)",
-        }}
-      />
       {/* emerald grid revealed around the cursor */}
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: line("rgba(52,211,153,0.35)"),
+          backgroundImage: line("rgba(52,211,153,0.5)"),
           backgroundSize: GRID,
           maskImage:
             "radial-gradient(240px circle at var(--mx) var(--my), black, transparent)",

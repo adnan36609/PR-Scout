@@ -24,6 +24,7 @@ export function SpotlightCard({
     <div
       ref={ref}
       onPointerMove={onMove}
+      onPointerDown={onMove}
       className={cn(
         "group relative overflow-hidden rounded-2xl border border-border bg-card/70 transition-colors hover:border-emerald-400/30",
         className,
@@ -31,7 +32,7 @@ export function SpotlightCard({
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-active:opacity-100"
         style={{
           background:
             "radial-gradient(360px circle at var(--x) var(--y), rgba(16,185,129,0.14), transparent 60%)",

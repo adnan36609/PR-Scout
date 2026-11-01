@@ -38,6 +38,13 @@ export function LandingTopLink({
           top: 0,
           behavior: "smooth",
         });
+
+        History.prototype.replaceState.call(
+          window.history,
+          window.history.state,
+          "",
+          window.location.pathname + window.location.search,
+        );
       }}
     >
       {children}

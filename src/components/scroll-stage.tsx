@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useMotionValueEvent, useScroll, type MotionValue } from "motion/react";
+import {
+  useInView,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  type MotionValue,
+} from "motion/react";
 
 export function ScrollStage({
   count,
@@ -18,6 +24,16 @@ export function ScrollStage({
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [desktop, setDesktop] = useState(false);
+  const reduce = useReducedMotion();
+  const inView = useInView(ref, { amount: 0.3 });
+  const [auto, setAuto] = useState(0);
+
+  useEffect(() => {
+    if (desktop || reduce || !inView) return;
+    setAuto(0);
+    const id = setInterval(() => setAuto((i) => (i + 1) % count), 2200);
+    return () => clearInterval(id);
+  }, [desktop, reduce, inView, count]);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
     const on = () => setDesktop(mq.matches);
@@ -46,7 +62,7 @@ export function ScrollStage({
     >
       <div className="lg:sticky lg:top-20 lg:flex lg:min-h-[calc(100svh-5rem)] lg:flex-col lg:justify-start lg:pt-[3vh]">
         {children({
-          active: desktop ? active : count - 1,
+          active: desktop ? active : reduce ? count - 1 : auto,
           progress: scrollYProgress,
         })}
       </div>
